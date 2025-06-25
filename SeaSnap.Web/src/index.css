@@ -1,0 +1,293 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Light mode scrollbar styles */
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Custom animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Ant Design customizations */
+.ant-layout-sider {
+  transition: all 0.2s ease !important;
+}
+
+.ant-upload-drag {
+  transition: all 0.3s ease !important;
+}
+
+.ant-upload-drag:hover {
+  border-color: #40a9ff !important;
+}
+
+/* Card hover effects */
+.ant-card {
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Light mode card hover */
+.ant-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Image preview styles */
+.image-preview-overlay {
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom table styles */
+.custom-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+  border-bottom: 2px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Light mode table header */
+.custom-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  border-bottom: 2px solid #f0f0f0;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.custom-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+}
+
+/* Light mode table cells */
+.custom-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.custom-table .ant-table-tbody > tr:hover > td {
+  background-color: #f5f5f5;
+}
+
+/* Light mode table hover */
+.custom-table .ant-table-tbody > tr:hover > td {
+  background-color: #f5f5f5;
+}
+
+/* Full height table container */
+.custom-table .ant-table-container {
+  height: 100%;
+}
+
+.custom-table .ant-table-body {
+  height: 100%;
+  overflow-y: auto !important;
+}
+
+.custom-table .ant-table-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Light mode fixes */
+.ant-layout {
+  background: #f5f5f5;
+}
+
+/* Light mode layout */
+.ant-layout {
+  background: #f5f5f5;
+}
+
+.ant-layout-content {
+  background: #f5f5f5;
+}
+
+/* Light mode content */
+.ant-layout-content {
+  background: #f5f5f5;
+}
+
+/* Table responsive scroll */
+.ant-table-wrapper {
+  overflow-x: auto;
+  height: 100%;
+}
+
+.ant-table-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.ant-table {
+  height: 100%;
+}
+
+.ant-table-tbody {
+  height: 100%;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .mobile-hide {
+    display: none !important;
+  }
+  
+  .custom-table .ant-table-tbody > tr > td {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .custom-table .ant-table-thead > tr > th {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Fix for light mode text visibility */
+.ant-typography {
+  color: inherit;
+}
+
+/* Light mode typography */
+.ant-typography {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Pagination styling */
+.ant-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ant-pagination-item {
+  border-radius: 6px;
+}
+
+.ant-pagination-item-active {
+  border-color: #1890ff;
+  background-color: #1890ff;
+}
+
+.ant-pagination-item-active a {
+  color: white;
+}
+
+/* Modal improvements */
+.ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+/* Light mode modal */
+.ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  background-color: #fff;
+}
+
+.ant-modal-content {
+  background-color: #fff;
+}
+
+.ant-modal-body {
+  background-color: #fff;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Ensure full height layout */
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+.ant-layout {
+  height: 100vh;
+}
+
+.ant-layout-content {
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+/* Page container full height */
+.page-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}

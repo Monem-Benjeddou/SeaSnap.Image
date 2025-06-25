@@ -1,0 +1,52 @@
+{
+    "Contents": [
+        {
+            "Key": "monem/712455fa-c06f-430a-8efc-03698efbf8be.jpg",
+            "LastModified": "2025-06-18T13:41:47+00:00",
+            "ETag": "\"cce7ee589f302729d424ade858dcffdb\"",
+            "Size": 56049,
+            "StorageClass": "STANDARD",
+            "Owner": {
+                "ID": ""
+            }
+        },
+        {
+            "Key": "monem/a81e20d4-c500-4f0a-8050-46238d30edc4.png",
+            "LastModified": "2025-06-18T13:41:47+00:00",
+            "ETag": "\"6b6ebf197970751f0da9cfa8b9a32b4f\"",
+            "Size": 1679186,
+            "StorageClass": "STANDARD",
+            "Owner": {
+                "ID": ""
+            }
+        }
+    ],
+    "RequestCharged": null,
+    "Prefix": ""
+}
+{
+    "Contents": [
+        {
+            "Key": "monem/712455fa-c06f-430a-8efc-03698efbf8be.jpg",
+            "LastModified": "2025-06-18T13:41:47+00:00",
+            "ETag": "\"cce7ee589f302729d424ade858dcffdb\"",
+            "Size": 56049,
+            "StorageClass": "STANDARD",
+            "Owner": {
+                "ID": ""
+            }
+        },
+        {
+            "Key": "monem/a81e20d4-c500-4f0a-8050-46238d30edc4.png",
+            "LastModified": "2025-06-18T13:41:47+00:00",
+            "ETag": "\"6b6ebf197970751f0da9cfa8b9a32b4f\"",
+            "Size": 1679186,
+            "StorageClass": "STANDARD",
+            "Owner": {
+                "ID": ""
+            }
+        }
+    ],
+    "RequestCharged": null,
+    "Prefix": ""
+}

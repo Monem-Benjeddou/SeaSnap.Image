@@ -1,0 +1,139 @@
+services:
+  master:
+    image: chrislusf/seaweedfs
+    ports:
+      - 9333:9333
+      - 19333:19333
+    command: "-v=1 master -ip=master -volumeSizeLimitMB=30000"
+    volumes:
+      - ./items/tls:/etc/seaweedfs/tls
+    env_file:
+      - ${ENV_FILE:-./items/dev.env}
+    networks:
+      - seaweedfs_network
+
+  volume:
+    image: chrislusf/seaweedfs
+    ports:
+      - 8080:8080
+      - 18080:18080
+    command: "-v=1 volume -mserver=master:9333 -port=8080 -ip=volume -preStopSeconds=1 -max=30000"
+    depends_on:
+      - master
+    volumes:
+      - ./items/tls:/etc/seaweedfs/tls
+    env_file:
+      - ${ENV_FILE:-./items/dev.env}
+    networks:
+      - seaweedfs_network
+
+  filer:
+    image: chrislusf/seaweedfs
+    ports:
+      - 8888:8888
+      - 18888:18888
+    command: '-v=1 filer -ip.bind=0.0.0.0 -master="master:9333"'
+    depends_on:
+      - master
+      - volume
+    volumes:
+      - ./items/tls:/etc/seaweedfs/tls
+      - ./items/filer.toml:/etc/seaweedfs/filer.toml
+    env_file:
+      - ${ENV_FILE:-./items/dev.env}
+    networks:
+      - seaweedfs_network
+
+  iam:
+    image: chrislusf/seaweedfs
+    ports:
+      - 8111:8111
+    command: '-v=1 iam -filer="filer:8888" -master="master:9333"'
+    depends_on:
+      - master
+      - volume
+      - filer
+    volumes:
+      - ./items/tls:/etc/seaweedfs/tls
+    networks:
+      - seaweedfs_network
+
+  s3:
+    image: chrislusf/seaweedfs
+    ports:
+      - 8333:8333
+      - 8334:8334
+    command: >-
+      -v=1 s3
+      -filer="filer:8888"
+      -ip.bind=s3
+      -port.https=8334
+      -cert.file=/etc/seaweedfs/tls/s3.dev.crt
+      -key.file=/etc/seaweedfs/tls/s3.dev.key
+      -config=/etc/seaweedfs/users.json
+    depends_on:
+      - master
+      - volume
+      - filer
+    volumes:
+      - ./items/tls:/etc/seaweedfs/tls
+      - ./items/iam/users.json:/etc/seaweedfs/users.json
+    env_file:
+      - ${ENV_FILE:-./items/dev.env}
+    networks:
+      - seaweedfs_network
+
+  mount:
+    image: chrislusf/seaweedfs
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    command: '-v=4 mount -filer="filer:8888" -dirAutoCreate -dir=/mnt/seaweedfs -cacheCapacityMB=100 -concurrentWriters=128'
+    volumes:
+      - ./items/tls:/etc/seaweedfs/tls
+    env_file:
+      - ${ENV_FILE:-./items/dev.env}
+    depends_on:
+      - master
+      - volume
+      - filer
+    networks:
+      - seaweedfs_network
+  postgres:
+    image: postgres
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: mWmAtK86dZa99rhpHugl
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./items/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - seaweedfs_network
+
+  db_init:
+    image: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./items/init.sql:/init.sql
+    entrypoint: ["bash", "-c", "psql -h postgres -U admin -d postgres -f /init.sql"]
+    environment:
+      PGPASSWORD: mWmAtK86dZa99rhpHugl
+    networks:
+      - seaweedfs_network
+
+networks:
+  seaweedfs_network:
+    driver: bridge
+volumes:
+  postgres_data:

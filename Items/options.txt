@@ -1,0 +1,3 @@
+cert.file=/etc/seaweedfs/tls/server.crt
+key.file=/etc/seaweedfs/tls/server.key
+https.port=8888
