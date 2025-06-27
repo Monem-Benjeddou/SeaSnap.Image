@@ -45,9 +45,9 @@ export const getRoleLabel = (role:string): string  => {
   switch (role) {
     case 'Admin':
       return 'Administrator';
-    case 'editor':
+    case 'Editor':
       return 'Editor';
-    case 'viewer':
+    case 'Viewer':
       return 'Viewer';
     default:
       return 'Unknown';

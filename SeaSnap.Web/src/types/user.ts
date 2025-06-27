@@ -6,6 +6,7 @@ export interface User {
   email: string;
   roles: UserRole[];
   createdAt: string;
+  companyId : string
 }
 
 export interface UserState {

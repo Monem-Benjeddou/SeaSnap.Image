@@ -1,41 +1,6 @@
-import { AxiosRequestConfig } from 'axios';
 import { BaseService } from './baseService';
-import { User } from '../types';
+import { CurrentUser, LoginResponse, InviteUserRequest, CompanyUser, UpdateUserRoleRequest } from '../types/auth';
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  tokenType: string;
-  accessToken: string;
-  expiresIn: number;
-  refreshToken: string;
-  user?: User;
-}
-
-export interface RegisterRequest {
-  email: string;
-  password: string;
-}
-
-export interface CurrentUser {
-  id: string;
-  userName: string;
-  email: string;
-  roles: string[];
-}
-
-export interface ErrorResponse {
-  type: string;
-  title: string;
-  status: number;
-  detail: string;
-  instance: string;
-  errors?: Record<string, string[]>;
-  [key: string]: unknown;
-}
 
 export class AuthService extends BaseService {
   private static instance: AuthService;
@@ -59,6 +24,7 @@ export class AuthService extends BaseService {
     const response = await this.post<LoginResponse>('/login', { email, password });
     const { accessToken, refreshToken } = response.data;
     this.setTokens(accessToken, refreshToken);
+    await this.getCurrentUser();
     return response.data;
   }
 
@@ -73,6 +39,7 @@ export class AuthService extends BaseService {
       return this.currentUser;
     } catch (error) {
       this.currentUser = null;
+      this.clearTokens(); 
       throw error;
     }
   }
@@ -88,6 +55,23 @@ export class AuthService extends BaseService {
     }
     this.clearTokens();
     this.currentUser = null;
+  }
+
+  public async inviteUser(request: InviteUserRequest): Promise<void> {
+    await this.post('/api/Company/users/invite', request);
+  }
+
+  public async getCompanyUsers(): Promise<CompanyUser[]> {
+    const response = await this.get<CompanyUser[]>('/api/Company/users');
+    return response.data;
+  }
+
+  public async deleteUser(userId: string): Promise<void> {
+    await this.delete(`/api/Company/users/${userId}`);
+  }
+
+  public async updateUserRole(request: UpdateUserRoleRequest): Promise<void> {
+    await this.put('/api/Company/users/role', request);
   }
 
   private setTokens(accessToken: string, refreshToken: string): void {

@@ -21,13 +21,24 @@ import {
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { User, UserRole } from '../types';
-import { userService } from '../services/userService';
+import { authService } from '../services/authService';
+import { CompanyUser, InviteUserRequest, UpdateUserRoleRequest } from '../types/auth';
+
 import { getRoleColor, getRoleLabel } from '../utils/permissions';
 import { formatDate } from '../utils/format';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+
+interface User {
+  id: string;
+  userName: string;
+  fullName: string;
+  email: string;
+  roles: string[];
+  createdAt: string;
+  companyId: string;
+}
 
 export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -39,11 +50,10 @@ export const UsersPage: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await userService.getUsers();
-      if (response.success) {
-        setUsers(response.data.data);
-      }
+      const fetchedUsers: CompanyUser[] = await authService.getCompanyUsers();
+      setUsers(fetchedUsers as User[]);
     } catch (error) {
+      console.error('Failed to load users:', error);
       toast.error('Failed to load users');
     } finally {
       setLoading(false);
@@ -63,21 +73,20 @@ export const UsersPage: React.FC = () => {
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     form.setFieldsValue({
-      name: user.name,
+      fullName: user.fullName, 
       email: user.email,
-      role: user.role,
+      role: user.roles[0], 
     });
     setModalVisible(true);
   };
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      const response = await userService.deleteUser(userId);
-      if (response.success) {
-        toast.success('User deleted successfully');
-        setUsers(users.filter(user => user.id !== userId));
-      }
+      await authService.deleteUser(userId); // Call deleteUser from authService
+      toast.success('User deleted successfully');
+      setUsers(users.filter(user => user.id !== userId));
     } catch (error) {
+      console.error('Failed to delete user:', error);
       toast.error('Failed to delete user');
     }
   };
@@ -85,28 +94,32 @@ export const UsersPage: React.FC = () => {
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      
+      console.log(values);
+
       if (editingUser) {
-        // Update user
-        const response = await userService.updateUser(editingUser.id, values);
-        if (response.success) {
-          toast.success('User updated successfully');
-          setUsers(users.map(user => 
-            user.id === editingUser.id ? response.data : user
-          ));
-        }
+        const updateRequest: UpdateUserRoleRequest = {
+          userId: editingUser.id,
+          newRole: values.role,
+        };
+        await authService.updateUserRole(updateRequest);
+        toast.success('User role updated successfully');
+        fetchUsers();
       } else {
-        // Create user
-        const response = await userService.createUser(values);
-        if (response.success) {
-          toast.success('User created successfully');
-          setUsers([...users, response.data]);
-        }
+        const inviteRequest: InviteUserRequest = {
+          email: values.email,
+          fullName: values.fullName,
+          role: values.role,
+          password: values.password, // Include password
+        };
+        await authService.inviteUser(inviteRequest); 
+        toast.success('User invited successfully');
+        fetchUsers();
       }
-      
+
       setModalVisible(false);
       form.resetFields();
     } catch (error) {
+      console.error('Failed to save user:', error);
       toast.error('Failed to save user');
     }
   };
@@ -114,15 +127,15 @@ export const UsersPage: React.FC = () => {
   const columns = [
     {
       title: 'User',
-      dataIndex: 'name',
-      key: 'name',
-      render: (name: string, record: User) => (
+      dataIndex: 'fullName', 
+      key: 'fullName',
+      render: (fullName: string, record: User) => (
         <div className="flex items-center space-x-3">
-          <Avatar src={record.avatar} size="large">
-            {name.charAt(0)}
+          <Avatar src={record.userName} size="large"> 
+            {fullName.charAt(0)}
           </Avatar>
           <div>
-            <div className="font-medium">{name}</div>
+            <div className="font-medium">{fullName}</div>
             <Text type="secondary" className="text-sm">
               {record.email}
             </Text>
@@ -132,12 +145,17 @@ export const UsersPage: React.FC = () => {
     },
     {
       title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role: UserRole) => (
-        <Tag color={getRoleColor(role)}>
-          {getRoleLabel(role)}
-        </Tag>
+      dataIndex: 'roles',
+      key: 'roles',
+      render: (roles: string[]) => (
+        // Assuming a user has at least one role and we display the first one
+        roles.length > 0 ? (
+          <Tag color={getRoleColor(roles[0])}>
+            {getRoleLabel(roles[0])}
+          </Tag>
+        ) : (
+          <Tag>No Role</Tag>
+        )
       ),
     },
     {
@@ -146,12 +164,16 @@ export const UsersPage: React.FC = () => {
       key: 'createdAt',
       render: (date: string) => formatDate(date),
     },
+    // The backend's User model doesn't have a 'LastLogin' property by default from IdentityUser
+    // If you add it to your backend User model, you can uncomment this:
+    /*
     {
       title: 'Last Login',
       dataIndex: 'lastLogin',
       key: 'lastLogin',
       render: (date: string) => date ? formatDate(date) : 'Never',
     },
+    */
     {
       title: 'Actions',
       key: 'actions',
@@ -164,7 +186,7 @@ export const UsersPage: React.FC = () => {
           />
           <Popconfirm
             title="Delete User"
-            description="Are you sure you want to delete this user?"
+            description={`Are you sure you want to delete ${record.fullName || record.userName}?`}
             onConfirm={() => handleDeleteUser(record.id)}
             okText="Delete"
             okType="danger"
@@ -191,7 +213,7 @@ export const UsersPage: React.FC = () => {
         <div>
           <Title level={2}>User Management</Title>
           <Text type="secondary">
-            Manage users and their permissions
+            Manage users and their permissions within your company.
           </Text>
         </div>
         <Button
@@ -226,26 +248,25 @@ export const UsersPage: React.FC = () => {
         </Card>
       </motion.div>
 
-      {/* User Modal */}
       <Modal
-        title={editingUser ? 'Edit User' : 'Create User'}
+        title={editingUser ? 'Edit User Role' : 'Invite New User'}
         open={modalVisible}
         onOk={handleModalOk}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
         }}
-        okText={editingUser ? 'Update' : 'Create'}
+        okText={editingUser ? 'Update Role' : 'Invite'}
       >
         <Form form={form} layout="vertical">
           <Form.Item
-            name="name"
-            label="Name"
-            rules={[{ required: true, message: 'Please enter user name' }]}
+            name="fullName"
+            label="Full Name"
+            rules={[{ required: true, message: 'Please enter user\'s full name' }]}
           >
-            <Input placeholder="Enter user name" />
+            <Input placeholder="Enter user's full name" />
           </Form.Item>
-          
+
           <Form.Item
             name="email"
             label="Email"
@@ -253,24 +274,32 @@ export const UsersPage: React.FC = () => {
               { required: true, message: 'Please enter email' },
               { type: 'email', message: 'Please enter a valid email' },
             ]}
+            
           >
-            <Input placeholder="Enter email address" />
+            <Input placeholder="Enter email address" disabled={!!editingUser} />
           </Form.Item>
-          
+
+          {!editingUser && ( // Only show password field for new user creation
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[{ required: true, message: 'Please enter a password' }, { min: 6, message: 'Password must be at least 6 characters' }]}
+            >
+              <Input.Password placeholder="Enter password" />
+            </Form.Item>
+          )}
+
           <Form.Item
             name="role"
             label="Role"
             rules={[{ required: true, message: 'Please select a role' }]}
           >
             <Select placeholder="Select user role">
-              <Option value="admin">
-                <Tag color={getRoleColor('admin')}>Administrator</Tag>
+              <Option value="Editor">
+                <Tag color={getRoleColor('Editor')}>Editor</Tag>
               </Option>
-              <Option value="editor">
-                <Tag color={getRoleColor('editor')}>Editor</Tag>
-              </Option>
-              <Option value="viewer">
-                <Tag color={getRoleColor('viewer')}>Viewer</Tag>
+              <Option value="Viewer">
+                <Tag color={getRoleColor('Viewer')}>Viewer</Tag>
               </Option>
             </Select>
           </Form.Item>

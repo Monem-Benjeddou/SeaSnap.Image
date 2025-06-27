@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User } from '../types';
+import { User } from '../types/user';
 import { AuthState } from '../types/auth';
 
 interface AuthActions {
@@ -17,7 +17,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       user: null,
       isAuthenticated: false,
       isLoading: false,
-
       login: (accessToken: string) => {
         const userData = localStorage.getItem('user');
         set({

@@ -1,33 +1,15 @@
+import {ImageItem} from '../types/ImageItem';
 export type UserRole = 'admin' | 'editor' | 'viewer';
-export interface User {
-  id: string;
-  email: string;
-  userName: string;
-  roles: string[];
-  avatar: string;
-  createdAt: string;
-}
 
-export interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+export interface DashboardStats {
+  totalImages: number;
+  storageUsedBytes: number;
+  storageLimitBytes: number;
+  uploadsThisMonth: number;
+  downloadsThisMonth: number;
+  activeUsers: number;
+  recentUploads: ImageItem[]; 
 }
-
-export interface Image {
-  id: string;
-  filename: string;
-  url: string;
-  thumbnailUrl: string;
-  size: number;
-  mimeType: string;
-  uploadedAt: string;
-  uploadedBy: User;
-  tags?: string[];
-  description?: string;
-}
-
 export interface UploadProgress {
   id: string;
   filename: string;

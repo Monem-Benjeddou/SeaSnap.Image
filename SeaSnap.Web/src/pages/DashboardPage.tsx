@@ -1,5 +1,5 @@
-import React from 'react';
-import { Row, Col, Card, Statistic, Progress, Avatar, Typography, List, Button } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Row, Col, Card, Statistic, Progress, Avatar, Typography, List, Button, Spin } from 'antd';
 import {
   FileImageOutlined,
   UploadOutlined,
@@ -11,46 +11,34 @@ import {
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../stores/authStore';
 import { formatBytes } from '../utils/format';
+import { dashboardService, DashboardStats } from '../services/dashboardService'; // Import dashboardService and DashboardStats
+import { ImageMetadata } from '../types'; // Assuming ImageMetadata is correctly defined in types.ts
 
 const { Title, Text } = Typography;
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuthStore();
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const stats = {
-    totalImages: 1247,
-    storageUsed: 15.6 * 1024 * 1024 * 1024,
-    storageLimit: 50 * 1024 * 1024 * 1024,
-    uploadsThisMonth: 156,
-    downloadsThisMonth: 847,
-    activeUsers: 12,
-  };
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        const data = await dashboardService.getDashboardStats();
+        setDashboardStats(data);
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+        // Optionally show a toast error
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const recentUploads = [
-    {
-      id: '1',
-      filename: 'product-hero-banner.jpg',
-      uploadedAt: '2 minutes ago',
-      size: 2.4 * 1024 * 1024,
-      user: 'John Doe',
-    },
-    {
-      id: '2',
-      filename: 'team-photo-2024.png',
-      uploadedAt: '15 minutes ago',
-      size: 5.1 * 1024 * 1024,
-      user: 'Jane Smith',
-    },
-    {
-      id: '3',
-      filename: 'logo-variations.svg',
-      uploadedAt: '1 hour ago',
-      size: 0.8 * 1024 * 1024,
-      user: 'Mike Johnson',
-    },
-  ];
+    fetchDashboardData();
+  }, []);
 
-  const storageUsagePercent = (stats.storageUsed / stats.storageLimit) * 100;
+  const storageUsagePercent = dashboardStats ? (dashboardStats.storageUsedBytes / dashboardStats.storageLimitBytes) * 100 : 0;
 
   const StatCard = ({ icon, title, value, color, trend }: any) => (
     <motion.div
@@ -85,6 +73,22 @@ export const DashboardPage: React.FC = () => {
     </motion.div>
   );
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full min-h-[500px]">
+        <Spin size="large" tip="Loading dashboard data..." />
+      </div>
+    );
+  }
+
+  if (!dashboardStats) {
+    return (
+      <div className="flex justify-center items-center h-full min-h-[500px] text-gray-500">
+        <Text>Failed to load dashboard data. Please try again.</Text>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <motion.div
@@ -110,45 +114,47 @@ export const DashboardPage: React.FC = () => {
         </div>
       </motion.div>
 
+      {/* Statistics Grid */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
           <StatCard
             icon={<FileImageOutlined className="text-xl" />}
             title="Total Images"
-            value={stats.totalImages.toLocaleString()}
+            value={dashboardStats.totalImages.toLocaleString()}
             color="#1890ff"
-            trend={12}
+            trend={12} // Hardcoded trend as backend doesn't provide it
           />
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <StatCard
             icon={<UploadOutlined className="text-xl" />}
             title="Uploads This Month"
-            value={stats.uploadsThisMonth}
+            value={dashboardStats.uploadsThisMonth}
             color="#52c41a"
-            trend={8}
+            trend={8} // Hardcoded trend
           />
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <StatCard
             icon={<DownloadOutlined className="text-xl" />}
             title="Downloads This Month"
-            value={stats.downloadsThisMonth}
+            value={dashboardStats.downloadsThisMonth}
             color="#fa8c16"
-            trend={15}
+            trend={15} // Hardcoded trend
           />
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <StatCard
             icon={<TeamOutlined className="text-xl" />}
             title="Active Users"
-            value={stats.activeUsers}
+            value={dashboardStats.activeUsers}
             color="#722ed1"
-            trend={5}
+            trend={5} // Hardcoded trend
           />
         </Col>
       </Row>
 
+      {/* Storage and Recent Activity */}
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>
           <motion.div
@@ -161,7 +167,7 @@ export const DashboardPage: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <Text>Used Storage</Text>
                   <Text strong>
-                    {formatBytes(stats.storageUsed)} / {formatBytes(stats.storageLimit)}
+                    {formatBytes(dashboardStats.storageUsedBytes)} / {formatBytes(dashboardStats.storageLimitBytes)}
                   </Text>
                 </div>
                 <Progress
@@ -176,13 +182,13 @@ export const DashboardPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
                     <div className="text-lg font-bold text-blue-500">
-                      {formatBytes(stats.storageUsed)}
+                      {formatBytes(dashboardStats.storageUsedBytes)}
                     </div>
                     <Text type="secondary">Used</Text>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-green-500">
-                      {formatBytes(stats.storageLimit - stats.storageUsed)}
+                      {formatBytes(dashboardStats.storageLimitBytes - dashboardStats.storageUsedBytes)}
                     </div>
                     <Text type="secondary">Available</Text>
                   </div>
@@ -200,20 +206,21 @@ export const DashboardPage: React.FC = () => {
           >
             <Card title="Recent Uploads" className="h-full">
               <List
-                dataSource={recentUploads}
-                renderItem={(item, index) => (
+                dataSource={dashboardStats.recentUploads}
+                renderItem={(item: ImageMetadata, index) => (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 * index }}
+                    key={item.id} // Add key for list items
                   >
                     <List.Item>
                       <List.Item.Meta
                         avatar={
-                          <Avatar
-                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.user}`}
-                            size="small"
-                          />
+                          // Use a placeholder for user avatar based on username initial or a generic icon
+                          <Avatar size="small">
+                            {item.uploadedBy?.userName?.charAt(0) || <UserOutlined />}
+                          </Avatar>
                         }
                         title={
                           <div className="flex items-center justify-between">
@@ -228,7 +235,7 @@ export const DashboardPage: React.FC = () => {
                         description={
                           <div className="flex items-center text-xs text-gray-500">
                             <ClockCircleOutlined className="mr-1" />
-                            {item.uploadedAt} by {item.user}
+                            {new Date(item.uploadedAt).toLocaleDateString()} by {item.uploadedBy?.userName || 'Unknown User'}
                           </div>
                         }
                       />

@@ -22,7 +22,7 @@ export const Sidebar = ({ collapsed, onCollapse }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
-
+  console.log('userData', user);
   const menuItems = [
     {
       key: 'dashboard',
@@ -41,7 +41,7 @@ export const Sidebar = ({ collapsed, onCollapse }) => {
       icon: <UploadOutlined />,
       label: 'Upload',
       onClick: () => navigate('/upload'),
-      hidden: !hasPermission(user?.roles, ['Admin', 'moderator']),
+      hidden: !hasPermission(user?.roles, ['Admin', 'Editor']),
     },
     {
       key: 'users',
@@ -114,7 +114,7 @@ export const Sidebar = ({ collapsed, onCollapse }) => {
                 className="ml-2 overflow-hidden flex-1" // Added flex-1
               >
                 <Text strong className="block text-sm text-gray-800 truncate">
-                  {user?.userName || 'Guest'}
+                  {user?.username }
                 </Text>
                 <Text
                   className="block text-xs truncate"
