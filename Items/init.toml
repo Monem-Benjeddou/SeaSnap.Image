@@ -1,6 +1,0 @@
-access_key = 4c5632b9917ae9fe65a6f913fe916a77
-secret_key = 7a781367e737ea7de13d63c84916eb8f
-host_base = s3:8334 # Or localhost:8334 if connecting from host
-host_bucket = %(bucket)s.s3:8334 # Or %(bucket)s.localhost:8334
-use_https = True
-ca_certs = /tls/server.crt
